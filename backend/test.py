@@ -13,17 +13,10 @@ data = query(
     {
         "inputs": {
             "source_sentence": "plastic straw",
-            "sentences":["plastic strawberry container", "paper straw", "plastic straws", "clear plastic wrap"]
+            "sentences":["plastic strawberry container", "paper straw", "plastic straws", "clear plastic wrap", "plastic strawberry container", "paper straw", "plastic straws", "clear plastic wrap", "plastic strawberry container", "paper straw", "plastic straws", "clear plastic wrap", "plastic strawberry container", "paper straw", "plastic straws", "clear plastic wrap"]
         }
     })
 
 print(data)
 
 ## [0.605, 0.894]
-
-# from sentence_transformers import SentenceTransformer
-# sentences = ["This is an example sentence", "Each sentence is converted"]
-
-# model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
-# embeddings = model.encode(sentences)
-# print(embeddings)
