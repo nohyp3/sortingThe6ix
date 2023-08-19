@@ -1,5 +1,5 @@
 # sortingThe6ix
-for hack the 6ix
+For hack the 6ix
 
 **Installation** 
 1. Clone the repository
