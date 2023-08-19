@@ -6,16 +6,21 @@ export default function App() {
   const [hasCameraPermission, setHasCameraPermission] = useState(null);
   const [camera, setCamera] = useState(null);
   const [image, setImage] = useState(null);
-  const [type, setType] = useState(Camera.Constants.Type.back);useEffect(() => {
+  const [type, setType] = useState(Camera.Constants.Type.back);
+  
+  useEffect(() => {
     (async () => {
-      const cameraStatus = await Camera.requestPermissionsAsync();
+      const cameraStatus = await Camera.getCameraPermissionsAsync();
       setHasCameraPermission(cameraStatus.status === 'granted');})();
-  }, []);const takePicture = async () => {
+  }, []);
+  
+  const takePicture = async () => {
     if(camera){
         const data = await camera.takePictureAsync(null)
         setImage(data.uri);
     }
   }
+
   if (hasCameraPermission === false) {
     return <Text>No access to camera</Text>;
   }
