@@ -84,7 +84,7 @@ function HomeScreen({navigation}){
           
           //const detectedObjects = visionResponse.data.responses[0].localizedObjectAnnotations;
           const detectedObjects = visionResponse.data.responses[0].labelAnnotations;
-          navigation.navigate('Image', {
+          navigation.navigate('Instructions', {
             imageUri: data.uri,
             detectedObjects: detectedObjects,
           });
@@ -183,31 +183,33 @@ function CameraScreen({route}){
   const { imageUri,detectedObjects } = route.params ? route.params : {flipIcon};
   console.log(detectedObjects)
   return(
-    <View>
-      <Text style={{fontSize: 30,
-      color: "#005698", textAlign: 'center', fontFamily: 'Anton-Regular'}}>Sort The 6ix</Text>
-      <Image
-        source = {{uri:imageUri}}
-        ratio={'1:1'}
-        style={{ width: 400, height: 400 }} // Adjust width and height as needed
-      />
-      {/*api call */}
-      
-      {detectedObjects && detectedObjects.map((object, index) => (
-        <Text key={index} style={{fontSize: 30, color: "#005698", textAlign: 'center'}}>
-          Object: {object.description}, Score: {object.score.toFixed(2)}
-        </Text>
-      ))}
-    </View>
+    <ScrollView>
+      <View>
+        <Text style={{fontSize: 30,
+        color: "#005698", textAlign: 'center', fontFamily: 'Anton-Regular'}}>Sort The 6ix</Text>
+        <Image
+          source = {{uri:imageUri}}
+          ratio={'1:1'}
+          style={{ width: 400, height: 400 }} // Adjust width and height as needed
+        />
+        {/*api call */}
+        
+        {detectedObjects && detectedObjects.map((object, index) => (
+          <Text key={index} style={{fontSize: 30, color: "#005698", textAlign: 'center'}}>
+            Object: {object.description}, Score: {object.score.toFixed(2)}
+          </Text>
+        ))}
+      </View>
+    </ScrollView>
   )
 }
 const Stack = createNativeStackNavigator();
 export default function App() {
-  return(
+  return( 
   <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="Image" component={CameraScreen} />
+        <Stack.Screen name="Instructions" component={CameraScreen} />
       </Stack.Navigator>
   </NavigationContainer>
   )
