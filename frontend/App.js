@@ -213,7 +213,7 @@ function CameraScreen({route}){
   } else {
     instructionsBody = (
       <Text style={{fontSize: 30, color: "#005698", textAlign: 'center'}}>
-        {responseData.res[0]} {responseData.res[1]} 
+        <Text style={{fontWeight: 'bold'}}>{responseData.res[0]}</Text> {responseData.res[1]} 
       </Text>
     );
   }
