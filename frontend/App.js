@@ -72,14 +72,16 @@ function HomeScreen({navigation}){
                 },
                 features: [
                   {
-                    type: 'OBJECT_LOCALIZATION',
+                    type: 'LABEL_DETECTION',
                   },
                 ],
               },
             ],
           });
-  
-          const detectedObjects = visionResponse.data.responses[0].localizedObjectAnnotations;
+          
+          //const detectedObjects = visionResponse.data.responses[0].localizedObjectAnnotations;
+          const detectedObjects = visionResponse.data.responses[0].labelAnnotations;
+          console.log(visionResponse.data.responses[0].labelAnnotations);
           navigation.navigate('Image', {
             imageUri: data.uri,
             detectedObjects: detectedObjects,
@@ -162,7 +164,6 @@ function HomeScreen({navigation}){
 //picture screen
 function CameraScreen({route}){
   const { imageUri,detectedObjects } = route.params ? route.params : {flipIcon};
-  console.log({uri:imageUri})
   console.log(detectedObjects)
   return(
     <View>
@@ -177,7 +178,7 @@ function CameraScreen({route}){
       
       {detectedObjects && detectedObjects.map((object, index) => (
         <Text key={index} style={{fontSize: 30, color: "#005698", textAlign: 'center'}}>
-          Object: {object.name}, Score: {object.score.toFixed(2)}
+          Object: {object.description}, Score: {object.score.toFixed(2)}
         </Text>
       ))}
     </View>
