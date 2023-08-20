@@ -95,10 +95,11 @@ function HomeScreen({navigation}){
             body: JSON.stringify({ labels: myArr })
           });
 
-          const responseJson = await response.json();
-          console.log(responseData);
+          let responseJson = await response.json();
+          // console.log(responseData);
           setResponseData(responseJson); // Set the response data here
-          console.log(responseData);
+          responseJson = null;
+          // console.log(responseData);
 
           navigation.navigate('Image', {
             imageUri: data.uri,
@@ -183,6 +184,7 @@ function HomeScreen({navigation}){
 function CameraScreen({route}){
   const screenWidth = Dimensions.get('window').width;
   const { imageUri,detectedObjects,responseData } = route.params ? route.params : {flipIcon};
+  console.log(detectedObjects)
   console.log(responseData)
 
   let instructionsBody;
