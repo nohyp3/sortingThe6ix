@@ -2,7 +2,6 @@ import json
 import requests
 
 items = []
-
 file = open("./WasteData.json", 'r')
 data = json.load(file)
 
