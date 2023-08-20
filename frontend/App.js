@@ -8,6 +8,7 @@ import { AppLoading } from 'expo';
 import flipIcon from './assets/flip.png'; // flip icon 
 import cameraIcon from './assets/camera.png'; //camera icon
 import { useFonts } from 'expo-font';
+import axios from 'axios'; // Import axios
 
 //style constants
 const styles = StyleSheet.create({
@@ -53,9 +54,45 @@ function HomeScreen({navigation}){
       const data = await camera.takePictureAsync(null)
       //console.log(data.uri);
       setImage(data.uri);
-      navigation.navigate('Image',{ imageUri: data.uri })
+      const apiKey = 'AIzaSyC0EthR6b8SLdKqZdyzZvxK5LIcCpfA4_g';
+      const visionApiUrl = `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`;
+      //console.log(data.base64);
+      try {
+        const response = await fetch(data.uri);
+        const imageBlob = await response.blob();
+        const reader = new FileReader();
+  
+        reader.onload = async () => {
+          const imageBase64 = reader.result.split(',')[1]; // Extract base64 data
+          const visionResponse = await axios.post(visionApiUrl, {
+            requests: [
+              {
+                image: {
+                  content: imageBase64,
+                },
+                features: [
+                  {
+                    type: 'OBJECT_LOCALIZATION',
+                  },
+                ],
+              },
+            ],
+          });
+  
+          const detectedObjects = visionResponse.data.responses[0].localizedObjectAnnotations;
+          navigation.navigate('Image', {
+            imageUri: data.uri,
+            detectedObjects: detectedObjects,
+          });
+        };
+  
+        reader.readAsDataURL(imageBlob);
+      } catch (error) {
+        console.error('Error sending image to Google Cloud Vision API:', error);
+      }
     }
   }
+  
   if (hasCameraPermission === false) {
     return <Text>No access to camera</Text>;
   }
@@ -124,8 +161,9 @@ function HomeScreen({navigation}){
 }
 //picture screen
 function CameraScreen({route}){
-  const { imageUri } = route.params ? route.params : {flipIcon};
+  const { imageUri,detectedObjects } = route.params ? route.params : {flipIcon};
   console.log({uri:imageUri})
+  console.log(detectedObjects)
   return(
     <View>
       <Text style={{fontSize: 30,
@@ -135,14 +173,13 @@ function CameraScreen({route}){
         ratio={'1:1'}
         style={{ width: 400, height: 400 }} // Adjust width and height as needed
       />
-      <Text style={{fontSize: 30,
-      color: "#005698", textAlign: 'center'}}>
-        Your Object is: Can
-      </Text>
-      <Text style={{fontSize: 30,
-      color: "#005698", textAlign: 'center'}}>
-        Your Object goes: Recycling
-      </Text>
+      {/*api call */}
+      
+      {detectedObjects && detectedObjects.map((object, index) => (
+        <Text key={index} style={{fontSize: 30, color: "#005698", textAlign: 'center'}}>
+          Object: {object.name}, Score: {object.score.toFixed(2)}
+        </Text>
+      ))}
     </View>
   )
 }
