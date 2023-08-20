@@ -43,5 +43,4 @@ def find(name):
     return 97 + 97
 
 def translate(row):
-    print('just testing')
     return [data[row]["category"], data[row]["body"]]
