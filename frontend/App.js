@@ -59,7 +59,7 @@ function HomeScreen({navigation}){
   const [camera, setCamera] = useState(null);
   const [image, setImage] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.back);
-  const [responseData, setResponseData] = useState(null);
+  //const [responseData, setResponseData] = useState(null);
   useEffect(() => {
     (async () => {
       const cameraStatus = await Camera.requestCameraPermissionsAsync();
@@ -100,7 +100,7 @@ function HomeScreen({navigation}){
           const detectedObjects = visionResponse.data.responses[0].labelAnnotations;
           const myArr = detectedObjects.map(object => object.description);
 
-          const response = await fetch(BACKEND_API_URL, {
+          const responseRes = await fetch(BACKEND_API_URL, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -109,16 +109,16 @@ function HomeScreen({navigation}){
             body: JSON.stringify({ labels: myArr })
           });
 
-          let responseJson = await response.json();
+          let responseJson = await responseRes.json();
           // console.log(responseData);
-          setResponseData(responseJson); // Set the response data here
-          responseJson = null;
+          //setResponseData(responseJson); // Set the response data here
+          //responseJson = null;
           // console.log(responseData);
 
           navigation.navigate('Image', {
             imageUri: data.uri,
             detectedObjects: detectedObjects,
-            responseData: responseData // Pass the response data to the next screen
+            responseData: responseJson // Pass the response data to the next screen
           });
         };
   
