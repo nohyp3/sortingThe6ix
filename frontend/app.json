@@ -15,7 +15,8 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {"NSAppTransportSecurity": { "NSAllowsArbitraryLoads": true }}
     },
     "android": {
       "adaptiveIcon": {
@@ -26,5 +27,6 @@
     "web": {
       "favicon": "./assets/favicon.png"
     }
-  }
+  },
+  "infoPlist": {"NSAppTransportSecurity": { "NSAllowsArbitraryLoads": true }}
 }

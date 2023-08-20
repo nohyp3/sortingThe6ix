@@ -10,6 +10,8 @@ import cameraIcon from './assets/camera.png'; //camera icon
 import { useFonts } from 'expo-font';
 import axios from 'axios'; // Import axios
 
+const BACKEND_API_URL = "https://dba0-141-117-117-21.ngrok-free.app/data"
+
 //style constants
 const styles = StyleSheet.create({
   ui: {
@@ -79,13 +81,29 @@ function HomeScreen({navigation}){
             ],
           });
           
+          
           //const detectedObjects = visionResponse.data.responses[0].localizedObjectAnnotations;
           const detectedObjects = visionResponse.data.responses[0].labelAnnotations;
-          console.log(visionResponse.data.responses[0].labelAnnotations);
           navigation.navigate('Image', {
             imageUri: data.uri,
             detectedObjects: detectedObjects,
           });
+
+          let myArr = [];
+          for (let i=0; i<detectedObjects.length; i++){
+            myArr.push(detectedObjects[i]["description"])
+          }
+          const response = await fetch(BACKEND_API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "ngrok-skip-browser-warning": "ngrok-skip-browser-warning"
+                // 'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: JSON.stringify({labels: myArr})
+          });
+          const responseData = await response.json()
+          console.log(responseData)
         };
   
         reader.readAsDataURL(imageBlob);
