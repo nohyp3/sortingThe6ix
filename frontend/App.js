@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet ,Text, View, Image, TouchableOpacity, ScrollView, Dimensions} from 'react-native';
+import { StyleSheet ,Text, View, Image, Button, TouchableOpacity, ScrollView, Dimensions, ActivityIndicator} from 'react-native';
 import { Camera } from 'expo-camera';
 import { SafeAreaView } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
@@ -9,6 +9,7 @@ import flipIcon from './assets/flip.png'; // flip icon
 import cameraIcon from './assets/camera.png'; //camera icon
 import { useFonts } from 'expo-font';
 import axios from 'axios'; // Import axios
+import { useNavigation } from '@react-navigation/native';
 
 const BACKEND_API_URL = "https://dba0-141-117-117-21.ngrok-free.app/data"
 
@@ -38,7 +39,19 @@ const styles = StyleSheet.create({
     zIndex: 1,
     margin: 40
   },
+  loading:{
+    flex: 1,
+    justifyContent: 'center',
+  },
 });
+//loading screen
+function LoadingScreen(){
+  return(
+    <View style={styles.loading}>
+      <ActivityIndicator size="large"/>
+    </View>
+  )
+}
 //homescreen
 function HomeScreen({navigation}){
   //constants
@@ -66,6 +79,7 @@ function HomeScreen({navigation}){
         const reader = new FileReader();
   
         reader.onload = async () => {
+          navigation.replace('LoadingScreen');
           const imageBase64 = reader.result.split(',')[1]; // Extract base64 data
           const visionResponse = await axios.post(visionApiUrl, {
             requests: [
@@ -182,10 +196,11 @@ function HomeScreen({navigation}){
 }
 //picture screen
 function CameraScreen({route}){
+  const navigation = useNavigation(); // Hook to get the navigation prop
   const screenWidth = Dimensions.get('window').width;
   const { imageUri,detectedObjects,responseData } = route.params ? route.params : {flipIcon};
-  console.log(detectedObjects)
-  console.log(responseData)
+  console.log("detected"+detectedObjects)
+  console.log("res"+responseData)
 
   let instructionsBody;
 
@@ -204,7 +219,8 @@ function CameraScreen({route}){
   }
 
   return(
-    <ScrollView>
+    <SafeAreaView>
+      <ScrollView>
       <View>
         <Text style={{fontSize: 30,
         color: "#005698", textAlign: 'center', fontFamily: 'Anton-Regular'}}>Sort The 6ix</Text>
@@ -214,17 +230,23 @@ function CameraScreen({route}){
           style={{ width: screenWidth, height: screenWidth }} // Adjust width and height as needed
         />
         {instructionsBody}
+        <Button
+          title="Go Back!"
+          onPress={() => navigation.navigate('Home')}
+        />
       </View>
     </ScrollView>
+    </SafeAreaView>
   )
 }
 const Stack = createNativeStackNavigator();
 export default function App() {
   return( 
   <NavigationContainer>
-      <Stack.Navigator>
+      <Stack.Navigator screenOptions={{headerShown: false}}>
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Image" component={CameraScreen} />
+        <Stack.Screen name="LoadingScreen" component={LoadingScreen} />
       </Stack.Navigator>
   </NavigationContainer>
   )
