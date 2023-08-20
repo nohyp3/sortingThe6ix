@@ -30,7 +30,7 @@ def find(name):
     
     ind = querydata.index(max(querydata))
     
-    if max(querydata) < 0.6:
+    if max(querydata) < 0.4:
         return 97 + 97
     
     print(items[ind])
@@ -49,4 +49,4 @@ def translate(row):
     print(data[row]["body"])
     
 
-translate(find("paper"))
+translate(find("charger"))
