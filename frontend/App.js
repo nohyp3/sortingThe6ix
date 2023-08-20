@@ -84,7 +84,7 @@ function HomeScreen({navigation}){
           
           //const detectedObjects = visionResponse.data.responses[0].localizedObjectAnnotations;
           const detectedObjects = visionResponse.data.responses[0].labelAnnotations;
-          navigation.navigate('Instructions', {
+          navigation.navigate('Instructions ', {
             imageUri: data.uri,
             detectedObjects: detectedObjects,
           });

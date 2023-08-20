@@ -3,7 +3,7 @@ import requests
 
 items = []
 
-file = open("backend\WasteData.json", 'r')
+file = open("./WasteData.json", 'r')
 data = json.load(file)
 
 API_URL = "https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2"
@@ -44,9 +44,4 @@ def find(name):
     return 97 + 97
 
 def translate(row):
-    
-    print(data[row]["category"])
-    print(data[row]["body"])
-    
-
-translate(find("paper"))
+    return [data[row]["category"], data[row]["body"]]
