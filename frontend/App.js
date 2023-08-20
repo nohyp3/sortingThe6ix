@@ -1,31 +1,119 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet ,Text, View, Button, Image} from 'react-native';
+import { StyleSheet ,Text, View, Button, Image, TouchableOpacity, ScrollView} from 'react-native';
 import { Camera } from 'expo-camera';
+import { SafeAreaView } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { AppLoading } from 'expo';
+import flipIcon from './assets/flip.png'; // flip icon 
+import cameraIcon from './assets/camera.png'; //camera icon
+import { useFonts } from 'expo-font';
+import axios from 'axios'; // Import axios
 
-export default function App() {
+//style constants
+const styles = StyleSheet.create({
+  ui: {
+    fontSize: 30,
+    color: "#005698"
+  },
+  cameraContainer: {
+    flex: 1,
+    flexDirection: 'row'
+  },
+  buttonContainer: {
+    position: 'absolute',
+    flexDirection: 'row',
+    bottom: -100,
+    alignSelf: 'center',
+  },
+  fixedRatio: {
+    flex: 1,
+    aspectRatio: 1
+  },
+  icon: {
+    width: 40,
+    height: 40,
+    zIndex: 1,
+    margin: 40
+  },
+});
+//homescreen
+function HomeScreen({navigation}){
+  //constants
   const [hasCameraPermission, setHasCameraPermission] = useState(null);
   const [camera, setCamera] = useState(null);
   const [image, setImage] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.back);
-  
   useEffect(() => {
     (async () => {
-      const cameraStatus = await Camera.getCameraPermissionsAsync();
+      const cameraStatus = await Camera.requestCameraPermissionsAsync();
       setHasCameraPermission(cameraStatus.status === 'granted');})();
   }, []);
-  
   const takePicture = async () => {
     if(camera){
-        const data = await camera.takePictureAsync(null)
-        setImage(data.uri);
+      const data = await camera.takePictureAsync(null)
+      //console.log(data.uri);
+      setImage(data.uri);
+      const apiKey = 'AIzaSyC0EthR6b8SLdKqZdyzZvxK5LIcCpfA4_g';
+      const visionApiUrl = `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`;
+      //console.log(data.base64);
+      try {
+        const response = await fetch(data.uri);
+        const imageBlob = await response.blob();
+        const reader = new FileReader();
+  
+        reader.onload = async () => {
+          const imageBase64 = reader.result.split(',')[1]; // Extract base64 data
+          const visionResponse = await axios.post(visionApiUrl, {
+            requests: [
+              {
+                image: {
+                  content: imageBase64,
+                },
+                features: [
+                  {
+                    type: 'LABEL_DETECTION',
+                  },
+                ],
+              },
+            ],
+          });
+          
+          //const detectedObjects = visionResponse.data.responses[0].localizedObjectAnnotations;
+          const detectedObjects = visionResponse.data.responses[0].labelAnnotations;
+          console.log(visionResponse.data.responses[0].labelAnnotations);
+          navigation.navigate('Image', {
+            imageUri: data.uri,
+            detectedObjects: detectedObjects,
+          });
+        };
+  
+        reader.readAsDataURL(imageBlob);
+      } catch (error) {
+        console.error('Error sending image to Google Cloud Vision API:', error);
+      }
     }
   }
-
   if (hasCameraPermission === false) {
     return <Text>No access to camera</Text>;
   }
+  //font
+  const [loaded] = useFonts({
+    'Anton-Regular': require('./assets/fonts/Anton-Regular.ttf'),
+  });
+
+  if (!loaded) {
+    return null;
+  }
   return (
+    <ScrollView>
    <View style={{ flex: 1}}>
+      <SafeAreaView>
+        <View style={styles.ui}>
+          <Text style={{fontSize: 30,
+      color: "#005698", textAlign: 'center', fontFamily: 'Anton-Regular'}}>Sort The 6ix</Text>
+        </View>
+      </SafeAreaView>
       <View style={styles.cameraContainer}>
             <Camera 
             ref={ref => setCamera(ref)}
@@ -33,27 +121,76 @@ export default function App() {
             type={type}
             ratio={'1:1'} />
       </View>
-      <Button
-            title="Flip Image"
+    <View style={styles.buttonContainer}>
+      <TouchableOpacity // Wrap Image with TouchableOpacity
+          onPress={() => {
+            setType(
+              type === Camera.Constants.Type.back
+                ? Camera.Constants.Type.front
+                : Camera.Constants.Type.back
+            );
+          }}
+        >
+          <Image
+            source={flipIcon} // Use the imported icon as the source
+            style={styles.icon}
+            resizeMode="contain"
             onPress={() => {
               setType(
                 type === Camera.Constants.Type.back
                   ? Camera.Constants.Type.front
                   : Camera.Constants.Type.back
               );
-            }}>
-        </Button>
-       <Button title="Take Picture" onPress={() => takePicture()} />
-        {image && <Image source={{uri: image}} style={{flex:1}}/>}
+            }}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity // Wrap Image with TouchableOpacity
+          onPress={takePicture}
+        >
+          <Image
+            source={cameraIcon} // Use the imported icon as the source
+            style={styles.icon}
+            resizeMode="contain"
+            onPress={takePicture}
+          />
+        </TouchableOpacity>
+       </View> 
+        
    </View>
+   </ScrollView>
   );
-}const styles = StyleSheet.create({
-  cameraContainer: {
-      flex: 1,
-      flexDirection: 'row'
-  },
-  fixedRatio:{
-      flex: 1,
-      aspectRatio: 1
-  }
-})
+}
+//picture screen
+function CameraScreen({route}){
+  const { imageUri,detectedObjects } = route.params ? route.params : {flipIcon};
+  console.log(detectedObjects)
+  return(
+    <View>
+      <Text style={{fontSize: 30,
+      color: "#005698", textAlign: 'center', fontFamily: 'Anton-Regular'}}>Sort The 6ix</Text>
+      <Image
+        source = {{uri:imageUri}}
+        ratio={'1:1'}
+        style={{ width: 400, height: 400 }} // Adjust width and height as needed
+      />
+      {/*api call */}
+      
+      {detectedObjects && detectedObjects.map((object, index) => (
+        <Text key={index} style={{fontSize: 30, color: "#005698", textAlign: 'center'}}>
+          Object: {object.description}, Score: {object.score.toFixed(2)}
+        </Text>
+      ))}
+    </View>
+  )
+}
+const Stack = createNativeStackNavigator();
+export default function App() {
+  return(
+  <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Image" component={CameraScreen} />
+      </Stack.Navigator>
+  </NavigationContainer>
+  )
+}
