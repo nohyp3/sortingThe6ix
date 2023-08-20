@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet ,Text, View, Button, Image, TouchableOpacity, ScrollView} from 'react-native';
+import { StyleSheet ,Text, View, Image, TouchableOpacity, ScrollView, Dimensions} from 'react-native';
 import { Camera } from 'expo-camera';
 import { SafeAreaView } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
@@ -46,6 +46,7 @@ function HomeScreen({navigation}){
   const [camera, setCamera] = useState(null);
   const [image, setImage] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.back);
+  const [responseData, setResponseData] = useState(null);
   useEffect(() => {
     (async () => {
       const cameraStatus = await Camera.requestCameraPermissionsAsync();
@@ -82,28 +83,28 @@ function HomeScreen({navigation}){
           });
           
           
-          //const detectedObjects = visionResponse.data.responses[0].localizedObjectAnnotations;
           const detectedObjects = visionResponse.data.responses[0].labelAnnotations;
-          navigation.navigate('Instructions ', {
-            imageUri: data.uri,
-            detectedObjects: detectedObjects,
-          });
+          const myArr = detectedObjects.map(object => object.description);
 
-          let myArr = [];
-          for (let i=0; i<detectedObjects.length; i++){
-            myArr.push(detectedObjects[i]["description"])
-          }
           const response = await fetch(BACKEND_API_URL, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
-                "ngrok-skip-browser-warning": "ngrok-skip-browser-warning"
-                // 'Content-Type': 'application/x-www-form-urlencoded',
+              "Content-Type": "application/json",
+              "ngrok-skip-browser-warning": "ngrok-skip-browser-warning"
             },
-            body: JSON.stringify({labels: myArr})
+            body: JSON.stringify({ labels: myArr })
           });
-          const responseData = await response.json()
-          console.log(responseData)
+
+          const responseJson = await response.json();
+          console.log(responseData);
+          setResponseData(responseJson); // Set the response data here
+          console.log(responseData);
+
+          navigation.navigate('Image', {
+            imageUri: data.uri,
+            detectedObjects: detectedObjects,
+            responseData: responseData // Pass the response data to the next screen
+          });
         };
   
         reader.readAsDataURL(imageBlob);
@@ -180,8 +181,26 @@ function HomeScreen({navigation}){
 }
 //picture screen
 function CameraScreen({route}){
-  const { imageUri,detectedObjects } = route.params ? route.params : {flipIcon};
-  console.log(detectedObjects)
+  const screenWidth = Dimensions.get('window').width;
+  const { imageUri,detectedObjects,responseData } = route.params ? route.params : {flipIcon};
+  console.log(responseData)
+
+  let instructionsBody;
+
+  if (!responseData || responseData.res === "Error") {
+    instructionsBody = (
+      <Text style={{fontSize: 30, color: "#005698", textAlign: 'center'}}>
+        Hm, it seems like something went wrong while processing your image. Sorry about that!
+      </Text>
+    );
+  } else {
+    instructionsBody = (
+      <Text style={{fontSize: 30, color: "#005698", textAlign: 'center'}}>
+        {responseData.res[0]} {responseData.res[1]} 
+      </Text>
+    );
+  }
+
   return(
     <ScrollView>
       <View>
@@ -190,15 +209,9 @@ function CameraScreen({route}){
         <Image
           source = {{uri:imageUri}}
           ratio={'1:1'}
-          style={{ width: 400, height: 400 }} // Adjust width and height as needed
+          style={{ width: screenWidth, height: screenWidth }} // Adjust width and height as needed
         />
-        {/*api call */}
-        
-        {detectedObjects && detectedObjects.map((object, index) => (
-          <Text key={index} style={{fontSize: 30, color: "#005698", textAlign: 'center'}}>
-            Object: {object.description}, Score: {object.score.toFixed(2)}
-          </Text>
-        ))}
+        {instructionsBody}
       </View>
     </ScrollView>
   )
@@ -209,7 +222,7 @@ export default function App() {
   <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="Instructions" component={CameraScreen} />
+        <Stack.Screen name="Image" component={CameraScreen} />
       </Stack.Navigator>
   </NavigationContainer>
   )
