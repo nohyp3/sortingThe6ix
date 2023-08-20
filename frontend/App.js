@@ -4,7 +4,10 @@ import { Camera } from 'expo-camera';
 import { SafeAreaView } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { AppLoading } from 'expo';
 import flipIcon from './assets/flip.png'; // flip icon 
+import cameraIcon from './assets/camera.png'; //camera icon
+import { useFonts } from 'expo-font';
 
 //style constants
 const styles = StyleSheet.create({
@@ -18,7 +21,8 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     position: 'absolute',
-    bottom: 20,
+    flexDirection: 'row',
+    bottom: -100,
     alignSelf: 'center',
   },
   fixedRatio: {
@@ -55,13 +59,21 @@ function HomeScreen({navigation}){
   if (hasCameraPermission === false) {
     return <Text>No access to camera</Text>;
   }
+  //font
+  const [loaded] = useFonts({
+    'Anton-Regular': require('./assets/fonts/Anton-Regular.ttf'),
+  });
+
+  if (!loaded) {
+    return null;
+  }
   return (
     <ScrollView>
    <View style={{ flex: 1}}>
       <SafeAreaView>
         <View style={styles.ui}>
           <Text style={{fontSize: 30,
-      color: "#005698", textAlign: 'center'}}>Sort The 6ix</Text>
+      color: "#005698", textAlign: 'center', fontFamily: 'Anton-Regular'}}>Sort The 6ix</Text>
         </View>
       </SafeAreaView>
       <View style={styles.cameraContainer}>
@@ -94,9 +106,18 @@ function HomeScreen({navigation}){
             }}
           />
         </TouchableOpacity>
+        <TouchableOpacity // Wrap Image with TouchableOpacity
+          onPress={takePicture}
+        >
+          <Image
+            source={cameraIcon} // Use the imported icon as the source
+            style={styles.icon}
+            resizeMode="contain"
+            onPress={takePicture}
+          />
+        </TouchableOpacity>
        </View> 
-       <Button title="Take Picture" onPress={takePicture} /> 
-        {image && <Image source={{uri: image}} style={{flex:1}}/>}
+        
    </View>
    </ScrollView>
   );
@@ -107,11 +128,21 @@ function CameraScreen({route}){
   console.log({uri:imageUri})
   return(
     <View>
-      <Text>Image Here</Text>
+      <Text style={{fontSize: 30,
+      color: "#005698", textAlign: 'center', fontFamily: 'Anton-Regular'}}>Sort The 6ix</Text>
       <Image
         source = {{uri:imageUri}}
-        style={{ width: 200, height: 200 }} // Adjust width and height as needed
+        ratio={'1:1'}
+        style={{ width: 400, height: 400 }} // Adjust width and height as needed
       />
+      <Text style={{fontSize: 30,
+      color: "#005698", textAlign: 'center'}}>
+        Your Object is: Can
+      </Text>
+      <Text style={{fontSize: 30,
+      color: "#005698", textAlign: 'center'}}>
+        Your Object goes: Recycling
+      </Text>
     </View>
   )
 }
