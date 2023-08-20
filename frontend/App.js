@@ -94,7 +94,6 @@ function HomeScreen({navigation}){
       }
     }
   }
-  
   if (hasCameraPermission === false) {
     return <Text>No access to camera</Text>;
   }
